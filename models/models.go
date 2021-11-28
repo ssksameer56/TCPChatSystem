@@ -1,10 +1,14 @@
 package models
 
-import "net"
+import (
+	"net"
+	"time"
+)
 
 type Message struct {
 	ClientName  string
 	MessageText string
+	Time        time.Time
 }
 
 const (
@@ -12,6 +16,11 @@ const (
 	END
 	PAUSE
 	ERROR
+)
+
+const (
+	END_CHAT   string = "END"
+	PAUSE_CHAT string = "PAUSE"
 )
 
 type Signal struct {
@@ -23,5 +32,6 @@ type Node struct {
 	Connection     *net.Conn
 	Name           string
 	SendChannel    chan Message
-	ReceiveChannel chan Message
+	ReceiveChannel chan string
+	SignalChannel  chan int
 }
