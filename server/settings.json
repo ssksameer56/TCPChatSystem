@@ -1,0 +1,5 @@
+{
+    "bufferSize":10,
+    "maxClients":10,
+    "defaultListenPort":5000
+}
