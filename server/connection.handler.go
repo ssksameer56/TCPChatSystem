@@ -34,6 +34,7 @@ func (client *Client) ReceiveMessage(text string) Message {
 	}
 }
 
+//Read Data from Client
 func (client *Client) Read() {
 	for {
 		var data []byte
@@ -67,6 +68,7 @@ func (client *Client) Read() {
 	}
 }
 
+//Handle all the communication between client and server
 func (client *Client) HandleConnection() {
 	go client.Read()
 	for {
@@ -88,6 +90,7 @@ func (client *Client) HandleConnection() {
 	}
 }
 
+//Generate a new client from the TCP Connection
 func NewClient(name string, conn *net.Conn, buffSize int) *Client {
 	client := Client{
 		Name:           name,                         //The name for client, for example username

@@ -5,9 +5,10 @@ import (
 )
 
 type ClientsManager struct {
-	AllClients map[string]*Client
+	AllClients map[string]*Client //Map of All Clients
 }
 
+//Send Message to All Clients
 func (manager *ClientsManager) BroadcastMessage(message Message) {
 	for _, client := range manager.AllClients {
 		select {
@@ -18,15 +19,18 @@ func (manager *ClientsManager) BroadcastMessage(message Message) {
 	}
 }
 
+//Add Client to the List
 func (manager *ClientsManager) AddClient(client *Client) {
 	manager.AllClients[client.Name] = client
 }
 
+//Remove Client from the List
 func (manager *ClientsManager) RemoveClient(name string) {
 	log.WithFields(log.Fields{"client": name}).Info("Removing client from connections")
 	delete(manager.AllClients, name)
 }
 
+//Check if client name is unique
 func (manager *ClientsManager) CheckClientName(name string) bool {
 	exists := false
 	for clientName := range manager.AllClients {
