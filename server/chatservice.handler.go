@@ -1,17 +1,29 @@
 package server
 
-import "github.com/ssksameer56/TCPChatSystem/models"
+import (
+	"net"
+)
 
-var clients []*Client
+type ServerConfig struct {
+	BufferSize int
+	Manager    ClientsManager
+}
 
-var server = models.Node{
-	Name: "Server",
+var server ServerConfig
+
+func init() {
+	server.BufferSize = 10
+	server.Manager = ClientsManager{}
 }
 
 func ListenForClients() {
 
 }
 
-func HandoverToManager() {
-
+func HandoverToManager(conn net.Conn) error {
+	err := server.Manager.CreateClient(conn)
+	if err != nil {
+		return err
+	}
+	return nil
 }

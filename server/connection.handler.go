@@ -73,11 +73,28 @@ func (client *Client) HandleConnection() {
 	go client.Read()
 	for {
 		select {
-		case data := <-client.ReceiveChannel:
-			client.ReceiveMessage(data)
-		case data := <-client.SendChannel:
+		case data, ok := <-client.ReceiveChannel:
+			if !ok {
+				log.WithFields(log.Fields{"client": client.Name}).Error("Error when reading message from client")
+				break
+			}
+			message := client.ReceiveMessage(data)
+			select {
+			case client.ServerChannel <- message:
+			default:
+				log.WithFields(log.Fields{"client": client.Name}).Info("Buffer full. discarding message: " + message.MessageText)
+			}
+		case data, ok := <-client.SendChannel:
+			if !ok {
+				log.WithFields(log.Fields{"client": client.Name}).Error("Error when sending message to client")
+				break
+			}
 			client.SendMessage(data)
-		case signal := <-client.SignalChannel:
+		case signal, ok := <-client.SignalChannel:
+			if !ok {
+				log.WithFields(log.Fields{"client": client.Name}).Error("Error when reading singal from client")
+				break
+			}
 			if signal == models.END {
 				close(client.ReceiveChannel)
 				close(client.SignalChannel)
@@ -91,13 +108,14 @@ func (client *Client) HandleConnection() {
 }
 
 //Generate a new client from the TCP Connection
-func NewClient(name string, conn *net.Conn, buffSize int) *Client {
+func NewClient(name string, conn *net.Conn, buffSize int, serverChannel chan<- Message) *Client {
 	client := Client{
 		Name:           name,                         //The name for client, for example username
 		Connection:     conn,                         //The connection object to the TCP Connection
 		SendChannel:    make(chan Message, buffSize), //Channel to handle data to be sent to client
 		ReceiveChannel: make(chan string, buffSize),  //Channel to recieve data from client
 		SignalChannel:  make(chan int, 1),            //Channel to signal status changes to server
+		ServerChannel:  serverChannel,                //Channel to send to server
 	}
 	return &client
 }

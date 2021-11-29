@@ -25,7 +25,7 @@ const (
 
 type Signal struct {
 	SignalType int
-	Message    string
+	ClientName string
 }
 
 type Node struct {
@@ -34,4 +34,5 @@ type Node struct {
 	SendChannel    chan Message
 	ReceiveChannel chan string
 	SignalChannel  chan int
+	ServerChannel  chan<- Message
 }
