@@ -66,9 +66,9 @@ func (manager *ClientsManager) CheckClientName(name string) bool {
 }
 
 func (manager *ClientsManager) CreateClient(conn net.Conn) error {
+	reader := bufio.NewReader(conn)
 	for {
-		conn.Write([]byte("Please Enter a name for client"))
-		reader := bufio.NewReader(conn)
+		conn.Write([]byte("Please Enter a name for client\n"))
 		name, _, err := reader.ReadLine()
 		if err != nil {
 			log.WithFields(log.Fields{"IP": conn.RemoteAddr()}).Error(err.Error())
@@ -76,8 +76,9 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 		}
 		if !manager.CheckClientName(string(name)) {
 			log.WithFields(log.Fields{"client": name}).Info("Creating Client for " + conn.RemoteAddr().String())
-			client := NewClient(string(name), &conn, server.BufferSize, manager.ServerChannel)
+			client := NewClient(string(name), &conn, server.config.BufferSize, manager.ServerChannel)
 			manager.AddClientToList(client)
+			conn.Write([]byte("Welcome to the Chat!\n"))
 			return nil
 		}
 	}
