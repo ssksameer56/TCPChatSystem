@@ -5,3 +5,8 @@ type ServerConfiguration struct {
 	BufferSize int    `json:"bufferSize"`
 	MaxClients int    `json:"maxClients"`
 }
+
+type ClientConfiguration struct {
+	ConnectPort string `json:"listenPort"`
+	ClientName  string `json:"clientName"`
+}

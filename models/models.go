@@ -36,3 +36,8 @@ type Node struct {
 	SignalChannel  chan int
 	ServerChannel  chan<- Message
 }
+
+type InputOutputHandler interface {
+	DisplayMessage(string) error
+	ReadMessage(string) (Message, error)
+}

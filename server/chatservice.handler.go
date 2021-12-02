@@ -72,6 +72,9 @@ func HandoverToManager(conn net.Conn) error {
 }
 
 func RunServer() {
-	InitServer()
+	err := InitServer()
+	if err != nil {
+
+	}
 	go ListenForClients()
 }
