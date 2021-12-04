@@ -1,3 +1,6 @@
 {
-    "defaultConnectPort":5000
+    "defaultChatHost": "127.0.0.1",
+    "defaultChatHostPort":"5000",
+    "defaultProtocol":"tcp",
+    "bufferSize":50
 }

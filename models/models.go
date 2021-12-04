@@ -37,7 +37,13 @@ type Node struct {
 	ServerChannel  chan<- Message
 }
 
+type Client struct {
+	Connection     *net.Conn
+	SendChannel    chan string
+	ReceiveChannel chan string
+}
+
 type InputOutputHandler interface {
 	DisplayMessage(string) error
-	ReadMessage(string) (Message, error)
+	ReadMessage() (string, error)
 }

@@ -3,14 +3,21 @@ package client
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
+	"sync"
 )
 
 type TerminalInput struct {
+	Reader io.Reader
+	Writer io.Writer
 }
 
-func (handler *TerminalInput) ReadMessage(clientName string) (string, error) {
-	reader := bufio.NewReader(os.Stdin)
+var consoleMutex sync.Mutex
+
+func (handler *TerminalInput) ReadMessage() (string, error) {
+	consoleMutex.Lock()
+	defer consoleMutex.Unlock()
+	reader := bufio.NewReader(handler.Reader)
 	data, _, err := reader.ReadLine()
 	if err != nil {
 		fmt.Println("Error while reading: ", err.Error())
@@ -20,8 +27,10 @@ func (handler *TerminalInput) ReadMessage(clientName string) (string, error) {
 }
 
 func (handler *TerminalInput) DisplayMessage(message string) error {
-	writer := bufio.NewWriter(os.Stdout)
-	_, err := writer.WriteString(message)
+	consoleMutex.Lock()
+	defer consoleMutex.Unlock()
+	writer := bufio.NewWriter(handler.Writer)
+	_, err := writer.WriteString(message + "\n")
 	if err != nil {
 		fmt.Println("Error while writing message to output: ", err.Error())
 		return err

@@ -7,6 +7,8 @@ type ServerConfiguration struct {
 }
 
 type ClientConfiguration struct {
-	ConnectPort string `json:"listenPort"`
-	ClientName  string `json:"clientName"`
+	DefaultChatHost     string `json:"defaultChatHost"`
+	DefaultChatHostPort string `json:"defaultChatHostPort"`
+	DefaultProtocol     string `json:"defaultProtocol"`
+	BufferSize          int    `json:"bufferSize"`
 }

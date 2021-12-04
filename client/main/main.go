@@ -1,24 +1,20 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 
-	"github.com/ssksameer56/TCPChatSystem/models"
+	"github.com/ssksameer56/TCPChatSystem/client"
 )
 
-var ClientConfig models.ClientConfiguration
-
-func InitClient() error {
-	file, _ := os.Open("client.settings.json")
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	err := decoder.Decode(&ClientConfig)
+func main() {
+	err := client.InitClient()
 	if err != nil {
-		fmt.Println("Cant get config:", err.Error())
-		return err
+		os.Exit(1)
 	}
-	return nil
+	var chatClient *client.Client
+	chatClient, err = client.CreateChatConnection()
+	if err != nil {
+		os.Exit(1)
+	}
+	go client.RunChat(chatClient)
 }
