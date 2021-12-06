@@ -14,9 +14,14 @@ func (client *Client) ListenForMessageFromServer() {
 	for {
 		var data []byte
 		if _, err := (*client.Connection).Read(data); err != nil {
-			fmt.Println("Error getting message: ", err.Error())
+			if err == net.ErrClosed {
+				client.ReceiveChannel <- "exit"
+			} else {
+				fmt.Println("Error getting message: ", err.Error())
+			}
 			continue
 		}
+
 		client.ReceiveChannel <- string(data)
 	}
 }
@@ -30,6 +35,13 @@ func (client *Client) ListenForInput(io models.InputOutputHandler) {
 			continue
 		}
 		client.SendChannel <- string(c)
+	}
+}
+
+func (client *Client) DisplayMessage(data string, handler models.InputOutputHandler) {
+	err := handler.DisplayMessage(data)
+	if err != nil {
+		fmt.Println("Error displaying message: ", err.Error())
 	}
 }
 

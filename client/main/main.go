@@ -17,4 +17,5 @@ func main() {
 		os.Exit(1)
 	}
 	go client.RunChat(chatClient)
+	(*chatClient.Connection).Close()
 }

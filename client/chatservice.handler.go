@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/ssksameer56/TCPChatSystem/models"
@@ -46,7 +47,7 @@ func CreateChatConnection() (*Client, error) {
 }
 
 func RunChat(client *Client) {
-	fmt.Println("Connected to Chat! Use C to start sending message, Enter to send the message")
+	fmt.Println("Connected to Chat! Use C and Enter to start sending message, Enter after to send the message")
 	go client.ListenForMessageFromServer() //Start a routine to check for messages from server
 	go client.ListenForInput(&ioHandler)   //Start a routine to get messages from input
 	for {
@@ -54,10 +55,17 @@ func RunChat(client *Client) {
 		case data, ok := <-client.ReceiveChannel:
 			if !ok {
 				fmt.Println("Cant read message from server")
-				break
+			} else if strings.EqualFold(data, "exit") {
+				{
+					return
+				}
+			} else {
+				client.DisplayMessage(data, &ioHandler)
 			}
-			ioHandler.DisplayMessage(data)
 		case data := <-client.SendChannel:
+			if strings.EqualFold(data, "exit") {
+				return
+			}
 			client.SendMessageToServer(data)
 		default:
 			time.Sleep(time.Millisecond * 1000)
