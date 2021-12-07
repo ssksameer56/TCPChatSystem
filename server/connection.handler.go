@@ -36,17 +36,18 @@ func (client *Client) ReceiveMessage(text string) Message {
 
 //Read Data from Client
 func (client *Client) Read() {
+	reader := bufio.NewReader(*client.Connection)
 	for {
 		var data []byte
-		if _, err := (*client.Connection).Read(data); err != nil {
+		data, _, err := reader.ReadLine()
+		if err != nil {
 			log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
 			continue
 		}
-		reader := bufio.NewReader(*client.Connection)
-		data, _, err := reader.ReadLine()
 		if err == io.EOF {
 			client.SignalChannel <- models.END
 			log.WithFields(log.Fields{"client": client.Name}).Info("Closing Connection")
+			return
 		} else if err != nil {
 			log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
 			continue
@@ -58,6 +59,7 @@ func (client *Client) Read() {
 			default:
 				log.WithFields(log.Fields{"client": client.Name}).Info("Buffer full. discarding signal: " + message)
 			}
+			return
 		} else {
 			select {
 			case client.ReceiveChannel <- message:
@@ -100,7 +102,9 @@ func (client *Client) HandleConnection() {
 				close(client.SignalChannel)
 				(*client.Connection).Close()
 				log.WithFields(log.Fields{"client": client.Name}).Info("Closing Connection")
+				return
 			}
+
 		default:
 			continue
 		}
@@ -117,5 +121,6 @@ func NewClient(name string, conn *net.Conn, buffSize int, serverChannel chan<- M
 		SignalChannel:  make(chan int, 1),            //Channel to signal status changes to server
 		ServerChannel:  serverChannel,                //Channel to send to server
 	}
+	go client.HandleConnection() // Start the loop for this connection
 	return &client
 }

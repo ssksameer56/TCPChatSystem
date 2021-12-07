@@ -15,7 +15,7 @@ type ClientsManager struct {
 }
 
 //Handle data for All Clients
-func (manager *ClientsManager) HandleClients(message Message) {
+func (manager *ClientsManager) HandleClients() {
 	for {
 		select {
 		case data, ok := <-manager.ServerChannel:
@@ -76,8 +76,9 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 		}
 		if !manager.CheckClientName(string(name)) {
 			log.WithFields(log.Fields{"client": name}).Info("Creating Client for " + conn.RemoteAddr().String())
-			client := NewClient(string(name), &conn, server.config.BufferSize, manager.ServerChannel)
+			client := NewClient(string(name), &conn, server.Config.BufferSize, manager.ServerChannel)
 			manager.AddClientToList(client)
+			go client.HandleConnection()
 			conn.Write([]byte("Welcome to the Chat!\n"))
 			return nil
 		}

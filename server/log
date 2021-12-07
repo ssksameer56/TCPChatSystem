@@ -1,0 +1,5 @@
+time="2021-12-07T22:09:24+05:30" level=error msg="Cant get config:json: cannot unmarshal string into Go struct field ServerConfiguration.bufferSize of type int" client=Server
+time="2021-12-07T22:15:18+05:30" level=info msg="Starting Server" client=Server
+time="2021-12-07T22:15:18+05:30" level=error msg="Listener: Listen Errorlisten tcp: address 5000: missing port in address" client=Server
+time="2021-12-07T22:16:00+05:30" level=info msg="Starting Server" client=Server
+time="2021-12-07T22:16:00+05:30" level=info msg="Listener: Listening..." client=Server
