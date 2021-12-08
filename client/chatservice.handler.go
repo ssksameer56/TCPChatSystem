@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ssksameer56/TCPChatSystem/models"
@@ -46,7 +47,7 @@ func CreateChatConnection() (*Client, error) {
 	return client, nil
 }
 
-func RunChat(client *Client) {
+func RunChat(client *Client, wg *sync.WaitGroup) {
 	fmt.Println("Connected to Chat! Use C and Enter to start sending message, Enter after to send the message")
 	go client.ListenForMessageFromServer() //Start a routine to check for messages from server
 	go client.ListenForInput(&ioHandler)   //Start a routine to get messages from input

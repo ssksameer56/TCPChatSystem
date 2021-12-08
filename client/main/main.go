@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"sync"
 
 	"github.com/ssksameer56/TCPChatSystem/client"
 )
@@ -16,6 +17,9 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
-	go client.RunChat(chatClient)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go client.RunChat(chatClient, &wg)
+	wg.Wait()
 	(*chatClient.Connection).Close()
 }

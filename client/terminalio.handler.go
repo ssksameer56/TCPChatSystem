@@ -23,8 +23,9 @@ func (handler *TerminalInput) ReadMessage() (string, error) {
 			break
 		}
 	}
-	fmt.Print(">")
 	consoleMutex.Lock()
+	fmt.Println("Enter Message:")
+	fmt.Print(">")
 	data, _, err := reader.ReadLine()
 	if err != nil {
 		fmt.Println("Error while reading: ", err.Error())
