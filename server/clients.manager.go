@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"net"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ type ClientsManager struct {
 }
 
 //Handle data for All Clients
-func (manager *ClientsManager) HandleClients() {
+func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool) {
 	for {
 		select {
 		case data, ok := <-manager.ServerChannel:
@@ -36,6 +37,9 @@ func (manager *ClientsManager) HandleClients() {
 					}
 				}
 			}
+		case <-quit:
+			wg.Done()
+			return
 		default:
 			time.Sleep(time.Millisecond * 1000)
 		}
@@ -78,7 +82,7 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 			log.WithFields(log.Fields{"client": name}).Info("Creating Client for " + conn.RemoteAddr().String())
 			client := NewClient(string(name), &conn, server.Config.BufferSize, manager.ServerChannel)
 			manager.AddClientToList(client)
-			go client.HandleConnection()
+			go client.HandleConnection(quitTrigger)
 			conn.Write([]byte("Welcome to the Chat!\n"))
 			return nil
 		}
