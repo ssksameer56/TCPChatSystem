@@ -36,6 +36,7 @@ func (client *Client) ReceiveMessage(text string) Message {
 
 //Read Data from Client
 func (client *Client) Read() {
+	log.WithFields(log.Fields{"client": client.Name}).Info("Started reading data from this client")
 	reader := bufio.NewReader(*client.Connection)
 	for {
 		var data []byte
@@ -71,7 +72,8 @@ func (client *Client) Read() {
 }
 
 //Handle all the communication between client and server
-func (client *Client) HandleConnection() {
+func (client *Client) HandleConnection(quitTrigger chan bool) {
+	log.WithFields(log.Fields{"client": client.Name}).Info("Started connection loop")
 	go client.Read()
 	for {
 		select {
@@ -101,10 +103,12 @@ func (client *Client) HandleConnection() {
 				close(client.ReceiveChannel)
 				close(client.SignalChannel)
 				(*client.Connection).Close()
-				log.WithFields(log.Fields{"client": client.Name}).Info("Closing Connection")
+				log.WithFields(log.Fields{"client": client.Name}).Info("Closed Connection")
 				return
 			}
-
+		case <-quitTrigger:
+			log.WithFields(log.Fields{"client": client.Name}).Info("Closed Connection")
+			return
 		default:
 			continue
 		}
@@ -121,6 +125,5 @@ func NewClient(name string, conn *net.Conn, buffSize int, serverChannel chan<- M
 		SignalChannel:  make(chan int, 1),            //Channel to signal status changes to server
 		ServerChannel:  serverChannel,                //Channel to send to server
 	}
-	go client.HandleConnection() // Start the loop for this connection
 	return &client
 }

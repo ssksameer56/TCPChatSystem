@@ -18,6 +18,8 @@ type ServerConfig struct {
 
 var server ServerConfig
 
+var quitTrigger chan bool
+
 func InitServer() error {
 	fmt.Println(os.Getwd())
 	file, _ := os.Open("./server.settings.json")
@@ -30,10 +32,11 @@ func InitServer() error {
 		return err
 	}
 	server.manager = ClientsManager{}
+	quitTrigger = make(chan bool)
 	return nil
 }
 
-func ListenForClients(wg sync.WaitGroup) {
+func ListenForClients(wg *sync.WaitGroup, quitChannel chan bool) {
 	log.WithFields(log.Fields{"client": "Server"}).Info("Starting Server")
 	listener, err := net.Listen("tcp", "localhost:"+server.Config.ListenPort)
 	if err != nil {
@@ -41,12 +44,14 @@ func ListenForClients(wg sync.WaitGroup) {
 		os.Exit(1)
 	}
 	defer listener.Close()
-
-	go server.manager.HandleClients() //Start the loop to handle connected clients
-
 	log.WithFields(log.Fields{"client": "Server"}).Info("Listener: Listening...")
 	for {
 		conn, err := listener.Accept()
+		select {
+		case <-quitChannel:
+			return
+		default:
+		}
 		if err != nil {
 			log.WithFields(log.Fields{"client": "Server"}).Error("Listener: Listen Error", err)
 			continue
@@ -85,6 +90,8 @@ func RunServer() {
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	go ListenForClients(wg)
+	go ListenForClients(&wg, quitTrigger) //Start listening for clients
+	wg.Add(1)
+	go server.manager.HandleClients(&wg, quitTrigger) //Start a loop to handle clients
 	wg.Wait()
 }
