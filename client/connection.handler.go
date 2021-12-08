@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 
@@ -11,9 +12,11 @@ type Client models.Client
 
 //Recieve message from Server
 func (client *Client) ListenForMessageFromServer() {
+	reader := bufio.NewReader(*client.Connection)
 	for {
 		var data []byte
-		if _, err := (*client.Connection).Read(data); err != nil {
+		data, _, err := reader.ReadLine()
+		if err != nil {
 			if err == net.ErrClosed {
 				client.ReceiveChannel <- "exit"
 			} else {
@@ -21,8 +24,8 @@ func (client *Client) ListenForMessageFromServer() {
 			}
 			continue
 		}
-
 		client.ReceiveChannel <- string(data)
+		break
 	}
 }
 
@@ -34,6 +37,7 @@ func (client *Client) ListenForInput(io models.InputOutputHandler) {
 			fmt.Println("Error reading message: ", err.Error())
 			continue
 		}
+		fmt.Println("SDS", string(c))
 		client.SendChannel <- string(c)
 	}
 }
@@ -47,7 +51,8 @@ func (client *Client) DisplayMessage(data string, handler models.InputOutputHand
 
 //Send Message to Server
 func (client *Client) SendMessageToServer(data string) bool {
-	_, err := (*client.Connection).Write([]byte(data))
+	n, err := (*client.Connection).Write([]byte(data))
+	fmt.Println(n)
 	if err != nil {
 		fmt.Println("Error in sending message to server: ")
 		return false

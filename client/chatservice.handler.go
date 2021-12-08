@@ -17,7 +17,7 @@ var ClientConfig models.ClientConfiguration
 var ioHandler TerminalInput
 
 func InitClient() error {
-	file, _ := os.Open("client.settings.json")
+	file, _ := os.Open("./client.settings.json")
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
@@ -63,10 +63,13 @@ func RunChat(client *Client, wg *sync.WaitGroup) {
 			} else {
 				client.DisplayMessage(data, &ioHandler)
 			}
-		case data := <-client.SendChannel:
-			if strings.EqualFold(data, "exit") {
+		case data, ok := <-client.SendChannel:
+			if !ok {
+				fmt.Println("Cant read message from user")
+			} else if strings.EqualFold(data, "exit") {
 				return
 			}
+			fmt.Println(data)
 			client.SendMessageToServer(data)
 		default:
 			time.Sleep(time.Millisecond * 1000)

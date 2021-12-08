@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -70,10 +71,12 @@ func (manager *ClientsManager) CheckClientName(name string) bool {
 }
 
 func (manager *ClientsManager) CreateClient(conn net.Conn) error {
+	log.WithFields(log.Fields{"IP": conn.RemoteAddr()}).Info("Creating Client")
 	reader := bufio.NewReader(conn)
 	for {
 		conn.Write([]byte("Please Enter a name for client\n"))
 		name, _, err := reader.ReadLine()
+		fmt.Println(string(name), "SDSD")
 		if err != nil {
 			log.WithFields(log.Fields{"IP": conn.RemoteAddr()}).Error(err.Error())
 			return err
