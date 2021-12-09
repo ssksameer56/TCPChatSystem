@@ -44,14 +44,10 @@ func (client *Client) Read() {
 		if err != nil {
 			log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
 			continue
-		}
-		if err == io.EOF {
+		} else if err == io.EOF {
 			client.SignalChannel <- models.END
 			log.WithFields(log.Fields{"client": client.Name}).Info("Closing Connection")
 			return
-		} else if err != nil {
-			log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
-			continue
 		}
 		message := string(data)
 		if message == models.END_CHAT {
@@ -85,6 +81,7 @@ func (client *Client) HandleConnection(quitTrigger chan bool) {
 			message := client.ReceiveMessage(data)
 			select {
 			case client.ServerChannel <- message:
+				fmt.Println("message from client:" + data)
 			default:
 				log.WithFields(log.Fields{"client": client.Name}).Info("Buffer full. discarding message: " + message.MessageText)
 			}

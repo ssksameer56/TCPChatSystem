@@ -33,7 +33,7 @@ func InitServer() error {
 	}
 	server.manager = ClientsManager{}
 	server.manager.AllClients = map[string]*Client{}
-	quitTrigger = make(chan bool)
+	quitTrigger = make(chan bool, 1)
 	return nil
 }
 
