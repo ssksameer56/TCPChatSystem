@@ -14,3 +14,4 @@ design.txt
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+server/chatservice.handler.go

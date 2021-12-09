@@ -18,19 +18,18 @@ var consoleMutex sync.Mutex
 func (handler *TerminalInput) ReadMessage() (string, error) {
 	reader := bufio.NewReader(handler.Reader)
 	fmt.Print(">")
-	//consoleMutex.Lock()
+	consoleMutex.Lock()
 	data, _, err := reader.ReadLine()
 	if err != nil {
 		fmt.Println("Error while reading: ", err.Error())
 		return "", err
 	}
-	//consoleMutex.Unlock()
+	consoleMutex.Unlock()
 	return string(data), nil
 }
 
 func (handler *TerminalInput) DisplayMessage(message string) error {
 	consoleMutex.Lock()
-	defer consoleMutex.Unlock()
 	writer := bufio.NewWriter(os.Stdout)
 	_, err := writer.WriteString(">> " + message + "\n")
 	writer.Flush()
@@ -38,5 +37,6 @@ func (handler *TerminalInput) DisplayMessage(message string) error {
 		fmt.Println("Error while writing message to output: ", err.Error())
 		return err
 	}
+	consoleMutex.Unlock()
 	return nil
 }

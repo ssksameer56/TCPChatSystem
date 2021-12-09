@@ -37,7 +37,6 @@ func (client *Client) ListenForInput(io models.InputOutputHandler) {
 			fmt.Println("Error reading message: ", err.Error())
 			continue
 		}
-		fmt.Println("SDS", string(c))
 		client.SendChannel <- string(c)
 	}
 }
@@ -51,8 +50,7 @@ func (client *Client) DisplayMessage(data string, handler models.InputOutputHand
 
 //Send Message to Server
 func (client *Client) SendMessageToServer(data string) bool {
-	n, err := (*client.Connection).Write([]byte(data))
-	fmt.Println(n)
+	_, err := (*client.Connection).Write([]byte(data))
 	if err != nil {
 		fmt.Println("Error in sending message to server: ")
 		return false
