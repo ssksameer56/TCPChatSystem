@@ -66,10 +66,9 @@ func RunChat(client *Client, wg *sync.WaitGroup) {
 		case data, ok := <-client.SendChannel:
 			if !ok {
 				fmt.Println("Cant read message from user")
-			} else if strings.EqualFold(data, "exit") {
+			} else if strings.EqualFold(string(data), "exit") {
 				return
 			}
-			fmt.Println(data)
 			client.SendMessageToServer(data)
 		default:
 			time.Sleep(time.Millisecond * 1000)

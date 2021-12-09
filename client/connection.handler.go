@@ -37,7 +37,7 @@ func (client *Client) ListenForInput(io models.InputOutputHandler) {
 			fmt.Println("Error reading message: ", err.Error())
 			continue
 		}
-		client.SendChannel <- string(c)
+		client.SendChannel <- c
 	}
 }
 
@@ -49,7 +49,7 @@ func (client *Client) DisplayMessage(data string, handler models.InputOutputHand
 }
 
 //Send Message to Server
-func (client *Client) SendMessageToServer(data string) bool {
+func (client *Client) SendMessageToServer(data []byte) bool {
 	_, err := (*client.Connection).Write([]byte(data))
 	if err != nil {
 		fmt.Println("Error in sending message to server: ")
@@ -62,7 +62,7 @@ func (client *Client) SendMessageToServer(data string) bool {
 func NewClient(conn net.Conn, buffSize int) *Client {
 	return &Client{
 		Connection:     &conn,
-		SendChannel:    make(chan string, buffSize),
+		SendChannel:    make(chan []byte, buffSize),
 		ReceiveChannel: make(chan string, buffSize),
 	}
 }

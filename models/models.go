@@ -39,11 +39,11 @@ type Node struct {
 
 type Client struct {
 	Connection     *net.Conn
-	SendChannel    chan string
+	SendChannel    chan []byte
 	ReceiveChannel chan string
 }
 
 type InputOutputHandler interface {
 	DisplayMessage(string) error
-	ReadMessage() (string, error)
+	ReadMessage() ([]byte, error)
 }
