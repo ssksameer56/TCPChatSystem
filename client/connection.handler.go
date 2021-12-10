@@ -4,18 +4,21 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/ssksameer56/TCPChatSystem/models"
 )
 
 type Client models.Client
 
+var connMutex sync.Mutex
+
 //Recieve message from Server
 func (client *Client) ListenForMessageFromServer() {
 	reader := bufio.NewReader(*client.Connection)
 	for {
-		var data []byte
-		data, _, err := reader.ReadLine()
+		var data string
+		data, err := reader.ReadString('\n')
 		if err != nil {
 			if err == net.ErrClosed {
 				client.ReceiveChannel <- "exit"
@@ -25,7 +28,6 @@ func (client *Client) ListenForMessageFromServer() {
 			continue
 		}
 		client.ReceiveChannel <- string(data)
-		break
 	}
 }
 
@@ -50,7 +52,9 @@ func (client *Client) DisplayMessage(data string, handler models.InputOutputHand
 
 //Send Message to Server
 func (client *Client) SendMessageToServer(data []byte) bool {
+	connMutex.Lock()
 	_, err := (*client.Connection).Write([]byte(data))
+	connMutex.Unlock()
 	if err != nil {
 		fmt.Println("Error in sending message to server: ")
 		return false

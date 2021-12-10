@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,6 +19,7 @@ type ClientsManager struct {
 
 //Handle data for All Clients
 func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool) {
+	log.WithFields(log.Fields{"client": "server"}).Info("Listening for data from all clients")
 	for {
 		select {
 		case data, ok := <-manager.ServerChannel:
@@ -25,6 +27,7 @@ func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool)
 				log.WithFields(log.Fields{"client": "Server"}).Error("Error when reading message from a client")
 				break
 			}
+			log.WithFields(log.Fields{"client": data.ClientName}).Info("Sending to all clients: " + data.MessageText)
 			if data.MessageText == models.END_CHAT {
 				client := manager.AllClients[data.ClientName]
 				client.SignalChannel <- models.END
@@ -34,7 +37,7 @@ func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool)
 					select {
 					case client.SendChannel <- data:
 					default:
-						log.WithFields(log.Fields{"client": client.Name}).Info("Buffer full. discarding message: " + data.MessageText)
+						log.WithFields(log.Fields{"client": client.Name}).Info("Send Buffer full. discarding message: " + data.MessageText)
 					}
 				}
 			}
@@ -49,14 +52,15 @@ func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool)
 
 //Add Client to the List
 func (manager *ClientsManager) AddClientToList(client *Client) {
-	log.WithFields(log.Fields{"client": client.Name}).Info("Adding client to connection list")
 	manager.AllClients[client.Name] = client
+	log.WithFields(log.Fields{"client": client.Name}).Info("Added client to connection list")
+
 }
 
 //Remove Client from the List
 func (manager *ClientsManager) RemoveClient(name string) {
-	log.WithFields(log.Fields{"client": name}).Info("Removing client from connection list")
 	delete(manager.AllClients, name)
+	log.WithFields(log.Fields{"client": name}).Info("Removed client from connection list")
 }
 
 //Check if client name is unique
@@ -75,8 +79,9 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 	reader := bufio.NewReader(conn)
 	for {
 		conn.Write([]byte("Please Enter a name for client\n"))
-		name, _, err := reader.ReadLine()
-		fmt.Println(string(name), "SDSD")
+		name, err := reader.ReadString('\n')
+		name = strings.Replace(name, "\n", "", -1)
+		fmt.Println(name)
 		if err != nil {
 			log.WithFields(log.Fields{"IP": conn.RemoteAddr()}).Error(err.Error())
 			return err
@@ -85,8 +90,8 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 			log.WithFields(log.Fields{"client": name}).Info("Creating Client for " + conn.RemoteAddr().String())
 			client := NewClient(string(name), &conn, server.Config.BufferSize, manager.ServerChannel)
 			manager.AddClientToList(client)
-			go client.HandleConnection(quitTrigger)
 			conn.Write([]byte("Welcome to the Chat!\n"))
+			go client.HandleConnection(quitTrigger)
 			return nil
 		}
 	}

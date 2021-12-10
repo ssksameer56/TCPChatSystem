@@ -16,8 +16,9 @@ type TerminalInput struct {
 
 func (handler *TerminalInput) ReadMessage() ([]byte, error) {
 	reader := bufio.NewReader(handler.Reader)
-	fmt.Print(">")
+	fmt.Println(">")
 	data, _, err := reader.ReadLine()
+	data = append(data, '\n')
 	if err != nil {
 		fmt.Println("Error while reading: ", err.Error())
 		return []byte{}, err
@@ -27,7 +28,7 @@ func (handler *TerminalInput) ReadMessage() ([]byte, error) {
 
 func (handler *TerminalInput) DisplayMessage(message string) error {
 	writer := bufio.NewWriter(os.Stdout)
-	_, err := writer.WriteString(">> " + message + "\n")
+	_, err := writer.WriteString(">> " + message)
 	writer.Flush()
 	if err != nil {
 		fmt.Println("Error while writing message to output: ", err.Error())

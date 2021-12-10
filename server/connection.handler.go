@@ -3,7 +3,6 @@ package server
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"net"
 	"time"
 
@@ -22,11 +21,13 @@ func (client *Client) SendMessage(message Message) error {
 		log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
 		return err
 	}
+	log.WithFields(log.Fields{"client": "server"}).Info("Sent:", messageToSend)
 	return nil
 }
 
 //Read and convert the message from Client
 func (client *Client) ReceiveMessage(text string) Message {
+	log.WithFields(log.Fields{"client": client.Name}).Info("Sending: " + text)
 	return Message{
 		ClientName:  client.Name,
 		MessageText: text,
@@ -39,17 +40,14 @@ func (client *Client) Read() {
 	log.WithFields(log.Fields{"client": client.Name}).Info("Started reading data from this client")
 	reader := bufio.NewReader(*client.Connection)
 	for {
-		var data []byte
-		data, _, err := reader.ReadLine()
+		var data string
+		data, err := reader.ReadString('\n')
 		if err != nil {
 			log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
-			continue
-		} else if err == io.EOF {
 			client.SignalChannel <- models.END
-			log.WithFields(log.Fields{"client": client.Name}).Info("Closing Connection")
 			return
 		}
-		message := string(data)
+		message := data
 		if message == models.END_CHAT {
 			select {
 			case client.SignalChannel <- models.END:
@@ -81,9 +79,9 @@ func (client *Client) HandleConnection(quitTrigger chan bool) {
 			message := client.ReceiveMessage(data)
 			select {
 			case client.ServerChannel <- message:
-				fmt.Println("message from client:" + data)
+				log.WithFields(log.Fields{"client": client.Name}).Info("Sending: " + message.MessageText + "to server")
 			default:
-				log.WithFields(log.Fields{"client": client.Name}).Info("Buffer full. discarding message: " + message.MessageText)
+				log.WithFields(log.Fields{"client": client.Name}).Info("Server Buffer full. discarding message: " + message.MessageText)
 			}
 		case data, ok := <-client.SendChannel:
 			if !ok {
@@ -104,7 +102,7 @@ func (client *Client) HandleConnection(quitTrigger chan bool) {
 				return
 			}
 		case <-quitTrigger:
-			log.WithFields(log.Fields{"client": client.Name}).Info("Closed Connection")
+			log.WithFields(log.Fields{"client": client.Name}).Info("Closed Connection from server")
 			return
 		default:
 			continue
@@ -119,7 +117,7 @@ func NewClient(name string, conn *net.Conn, buffSize int, serverChannel chan<- M
 		Connection:     conn,                         //The connection object to the TCP Connection
 		SendChannel:    make(chan Message, buffSize), //Channel to handle data to be sent to client
 		ReceiveChannel: make(chan string, buffSize),  //Channel to recieve data from client
-		SignalChannel:  make(chan int, 1),            //Channel to signal status changes to server
+		SignalChannel:  make(chan int, 10),           //Channel to signal status changes to server
 		ServerChannel:  serverChannel,                //Channel to send to server
 	}
 	return &client
