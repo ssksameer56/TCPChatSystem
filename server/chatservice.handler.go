@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net"
 	"os"
 	"sync"
@@ -21,7 +20,6 @@ var server ServerConfig
 var quitTrigger chan bool
 
 func InitServer() error {
-	fmt.Println(os.Getwd())
 	file, _ := os.Open("./server.settings.json")
 	defer file.Close()
 

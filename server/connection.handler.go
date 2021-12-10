@@ -21,13 +21,12 @@ func (client *Client) SendMessage(message Message) error {
 		log.WithFields(log.Fields{"client": client.Name}).Error(err.Error())
 		return err
 	}
-	log.WithFields(log.Fields{"client": "server"}).Info("Sent:", messageToSend)
 	return nil
 }
 
 //Read and convert the message from Client
 func (client *Client) ReceiveMessage(text string) Message {
-	log.WithFields(log.Fields{"client": client.Name}).Info("Sending: " + text)
+	log.WithFields(log.Fields{"client": client.Name}).Info("Got message: " + text)
 	return Message{
 		ClientName:  client.Name,
 		MessageText: text,
@@ -79,7 +78,6 @@ func (client *Client) HandleConnection(quitTrigger chan bool) {
 			message := client.ReceiveMessage(data)
 			select {
 			case client.ServerChannel <- message:
-				log.WithFields(log.Fields{"client": client.Name}).Info("Sending: " + message.MessageText + "to server")
 			default:
 				log.WithFields(log.Fields{"client": client.Name}).Info("Server Buffer full. discarding message: " + message.MessageText)
 			}
@@ -98,6 +96,8 @@ func (client *Client) HandleConnection(quitTrigger chan bool) {
 				close(client.ReceiveChannel)
 				close(client.SignalChannel)
 				(*client.Connection).Close()
+				msg := models.Message{MessageText: models.END_CHAT, ClientName: client.Name, Time: time.Now()}
+				client.ServerChannel <- msg
 				log.WithFields(log.Fields{"client": client.Name}).Info("Closed Connection")
 				return
 			}

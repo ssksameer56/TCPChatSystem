@@ -29,8 +29,6 @@ func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool)
 			}
 			log.WithFields(log.Fields{"client": data.ClientName}).Info("Sending to all clients: " + data.MessageText)
 			if data.MessageText == models.END_CHAT {
-				client := manager.AllClients[data.ClientName]
-				client.SignalChannel <- models.END
 				manager.RemoveClient(data.ClientName)
 			} else {
 				for _, client := range manager.AllClients {
@@ -78,9 +76,9 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 	log.WithFields(log.Fields{"IP": conn.RemoteAddr()}).Info("Creating Client")
 	reader := bufio.NewReader(conn)
 	for {
-		conn.Write([]byte("Please Enter a name for client\n"))
+		conn.Write([]byte("Please Enter a name for your client\n"))
 		name, err := reader.ReadString('\n')
-		name = strings.Replace(name, "\n", "", -1)
+		name = strings.Replace(name, "\n", "", -1) // to remove the delimiter from name
 		fmt.Println(name)
 		if err != nil {
 			log.WithFields(log.Fields{"IP": conn.RemoteAddr()}).Error(err.Error())
