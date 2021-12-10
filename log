@@ -1,6 +1,0 @@
-time="2021-12-07T21:55:44+05:30" level=error msg="Cant get config:invalid argument" client=Server
-time="2021-12-07T22:00:02+05:30" level=error msg="Cant get config:invalid argument" client=Server
-time="2021-12-07T22:01:14+05:30" level=error msg="Cant get config:invalid argument" client=Server
-time="2021-12-07T22:05:06+05:30" level=error msg="Cant get config:invalid argument" client=Server
-time="2021-12-07T22:06:04+05:30" level=error msg="Cant get config:invalid argument" client=Server
-time="2021-12-07T22:08:35+05:30" level=error msg="Cant get config:invalid argument" client=Server
