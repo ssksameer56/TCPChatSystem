@@ -14,7 +14,7 @@ A Simple TCP Chat System Written in Go. The purpose is to explore the functional
 
 # Usage
 
-The Package contains two modules - server and client.
+The Go Module contains two packages - server and client respectively.
 
 To start the server navigate the server folder and start the server
 
