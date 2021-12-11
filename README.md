@@ -1,6 +1,9 @@
 # TCPChatSystem
 A Simple TCP Chat System Written in Go. The purpose is to explore the functionality of goroutines, channels and concurrency in Go. I have also tried to use interfaces to implement certain features(Reader/Writer)
 
+[![Go](https://github.com/ssksameer56/TCPChatSystem/actions/workflows/go.yml/badge.svg)](https://github.com/ssksameer56/TCPChatSystem/actions/workflows/go.yml)
+
+
 # Features
 1. Supports multiple clients
 2. Uses basic TCP/IP Protocol to enable messaging
