@@ -33,7 +33,7 @@ go run main.go
 
 # Customising
 
-You can modify the settings in Client and Server via the \*.settings.json file
+You can modify the settings in Client and Server via the \*.settings.json file in each package
 
 | Setting        | Purpose      |
 | ------------- |:-------------:|
