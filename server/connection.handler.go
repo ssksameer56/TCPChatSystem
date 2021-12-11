@@ -102,7 +102,7 @@ func (client *Client) HandleConnection(quitTrigger chan bool) {
 				return
 			}
 		case <-quitTrigger:
-			log.WithFields(log.Fields{"client": client.Name}).Info("Closed Connection from server")
+			log.WithFields(log.Fields{"client": client.Name}).Info("Close Connection trigger from server received")
 			return
 		default:
 			continue

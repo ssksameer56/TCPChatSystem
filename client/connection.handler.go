@@ -3,6 +3,7 @@ package client
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 
@@ -14,14 +15,21 @@ type Client models.Client
 var connMutex sync.Mutex
 
 //Recieve message from Server
-func (client *Client) ListenForMessageFromServer() {
+func (client *Client) ListenForMessageFromServer(quitTrigger chan bool) {
 	reader := bufio.NewReader(*client.Connection)
 	for {
+		select {
+		case <-quitTrigger:
+			fmt.Println("Stopped listening from server")
+			return
+		default:
+		}
 		var data string
 		data, err := reader.ReadString('\n')
 		if err != nil {
-			if err == net.ErrClosed {
-				client.ReceiveChannel <- "exit"
+			if err == net.ErrClosed || err == io.EOF {
+				client.ReceiveChannel <- models.END_CHAT
+				return
 			} else {
 				fmt.Println("Error getting message: ", err.Error())
 			}
@@ -32,8 +40,14 @@ func (client *Client) ListenForMessageFromServer() {
 }
 
 //Read from any input
-func (client *Client) ListenForInput(io models.InputOutputHandler) {
+func (client *Client) ListenForInput(io models.InputOutputHandler, quitTrigger chan bool) {
 	for {
+		select {
+		case <-quitTrigger:
+			fmt.Println("Stopped listening from user")
+			return
+		default:
+		}
 		c, err := io.ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading message: ", err.Error())

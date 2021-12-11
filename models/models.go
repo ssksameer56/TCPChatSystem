@@ -19,8 +19,8 @@ const (
 )
 
 const (
-	END_CHAT   string = "END"
-	PAUSE_CHAT string = "PAUSE"
+	END_CHAT   string = "END\n"
+	PAUSE_CHAT string = "PAUSE\n"
 )
 
 type Signal struct {

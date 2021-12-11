@@ -48,25 +48,30 @@ func CreateChatConnection() (*Client, error) {
 }
 
 func RunChat(client *Client, wg *sync.WaitGroup) {
-	fmt.Println("Connected to Chat! Use C and Enter to start sending message, Enter after to send the message")
-	go client.ListenForMessageFromServer() //Start a routine to check for messages from server
-	go client.ListenForInput(&ioHandler)   //Start a routine to get messages from input
+	fmt.Println("Connected to Chat! Configure your name and press Enter to send the message")
+	quitTrigger := make(chan bool, 1)
+	go client.ListenForMessageFromServer(quitTrigger) //Start a routine to check for messages from server
+	go client.ListenForInput(&ioHandler, quitTrigger) //Start a routine to get messages from input
 	for {
 		select {
 		case data, ok := <-client.ReceiveChannel:
 			if !ok {
 				fmt.Println("Cant read message from server")
-			} else if strings.EqualFold(data, "exit") {
-				{
-					return
-				}
+			} else if strings.EqualFold(string(data), models.END_CHAT) {
+				close(quitTrigger)
+				fmt.Println("Server closed the chat!")
+				wg.Done()
+				return
 			} else {
 				client.DisplayMessage(data, &ioHandler)
 			}
 		case data, ok := <-client.SendChannel:
 			if !ok {
 				fmt.Println("Cant read message from user")
-			} else if strings.EqualFold(string(data), "exit") {
+			} else if strings.EqualFold(string(data), models.END_CHAT) {
+				close(quitTrigger)
+				fmt.Println("Exiting the Chat!")
+				wg.Done()
 				return
 			}
 			client.SendMessageToServer(data)

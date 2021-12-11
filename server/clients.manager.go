@@ -30,17 +30,18 @@ func (manager *ClientsManager) HandleClients(wg *sync.WaitGroup, quit chan bool)
 			log.WithFields(log.Fields{"client": data.ClientName}).Info("Sending to all clients: " + data.MessageText)
 			if data.MessageText == models.END_CHAT {
 				manager.RemoveClient(data.ClientName)
-			} else {
-				for _, client := range manager.AllClients {
-					select {
-					case client.SendChannel <- data:
-					default:
-						log.WithFields(log.Fields{"client": client.Name}).Info("Send Buffer full. discarding message: " + data.MessageText)
-					}
+				data.MessageText = "HAS EXITED THE CHAT\n"
+			}
+			for _, client := range manager.AllClients {
+				select {
+				case client.SendChannel <- data:
+				default:
+					log.WithFields(log.Fields{"client": client.Name}).Info("Send Buffer full. discarding message: " + data.MessageText)
 				}
 			}
 		case <-quit:
 			wg.Done()
+			log.WithFields(log.Fields{"client": "server"}).Info("Stopped Listening to Clients")
 			return
 		default:
 			time.Sleep(time.Millisecond * 1000)
@@ -88,9 +89,11 @@ func (manager *ClientsManager) CreateClient(conn net.Conn) error {
 			log.WithFields(log.Fields{"client": name}).Info("Creating Client for " + conn.RemoteAddr().String())
 			client := NewClient(string(name), &conn, server.Config.BufferSize, manager.ServerChannel)
 			manager.AddClientToList(client)
-			conn.Write([]byte("Welcome to the Chat!\n"))
+			conn.Write([]byte("Welcome to the Chat " + client.Name + " !\n"))
 			go client.HandleConnection(quitTrigger)
 			return nil
+		} else {
+			conn.Write([]byte("Name already taken\n"))
 		}
 	}
 }
